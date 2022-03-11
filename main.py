@@ -5,7 +5,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 import json
 import urllib.request
 from replit import db
-
+import datetime
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
 from_number = os.environ['FROM_NUMBER']
@@ -65,7 +65,7 @@ def sms_reply():
       try: 
         update_results_so_far(question,response_string)
         
-        return_value = {"response":response_string,"number":number, "question":question,"results":results_so_far_to_string(get_results_so_far(question))}
+        return_value = {"received_at":datetime.datetime.now().isoformat(),"response":response_string,"number":number, "question":question,"results":results_so_far_to_string(get_results_so_far(question))}
         
         req = urllib.request.Request(return_url)
         req.add_header('Content-Type', 'application/json; charset=utf-8')
@@ -76,7 +76,7 @@ def sms_reply():
         
         del db[number]
         # Add a message
-        resp.message("Thank you for answering our survey with: "+response_string +"\n\nResults so far: "+results_so_far_to_string(get_results_so_far(question)))
+        resp.message("Thank you for answering our survey with: "+response_string +"\n\nResults so far:\n"+results_so_far_to_string(get_results_so_far(question)))
       except:
         resp.message("Hmm, we couldn't read your reply. Please try with a number 1-"+str(len(db[number]["responses"])))
       else:
@@ -129,7 +129,7 @@ def new_responses():
 
   latest=json.loads(db["latest"])
   db["latest"]=json.dumps({"responses":[]})
-  
+  print(latest)
   response = app.response_class(
         response=json.dumps(latest),
         status=200,
