@@ -7,6 +7,7 @@ import urllib.request
 
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
 auth_token = os.environ['TWILIO_AUTH_TOKEN']
+from_number = os.environ['FROM_NUMBER']
 client = Client(account_sid, auth_token)
 
 # RETURN_URL = "https://frailenchantingparentheses.phelimbradley.repl.co/sms-response"
@@ -26,18 +27,21 @@ def sms_reply():
     """Respond to incoming calls with a simple text message."""
     # Start our TwiML response
     resp = MessagingResponse()
-    response=int(request.values['Body'].strip())
-
-    return_value = {"response":request.values['Body'],"number":request.values['From']}
-
-    req = urllib.request.Request(RETURN_URL)
-    req.add_header('Content-Type', 'application/json; charset=utf-8')
-    jsondata = json.dumps(return_value)
-    jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
-    req.add_header('Content-Length', len(jsondataasbytes))
-    post_response = urllib.request.urlopen(req, jsondataasbytes)
-    # Add a message
-    resp.message("Thank you for answering our survey with: "+str(response))
+    try: 
+      response=int(request.values['Body'].strip())
+  
+      return_value = {"response":request.values['Body'],"number":request.values['From']}
+  
+      req = urllib.request.Request(RETURN_URL)
+      req.add_header('Content-Type', 'application/json; charset=utf-8')
+      jsondata = json.dumps(return_value)
+      jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
+      req.add_header('Content-Length', len(jsondataasbytes))
+      post_response = urllib.request.urlopen(req, jsondataasbytes)
+      # Add a message
+      resp.message("Thank you for answering our survey with: "+str(response))
+    except:
+      resp.message("Hmm, we couldn't read your reply. Please try with a number 1-10.")
 
     return str(resp)
 
@@ -52,15 +56,15 @@ def send_sms():
   body = data["question"]
   for i,response in enumerate(data["responses"]):
     body+="\n"+str(i+1)+". " + response
-  body +"\n Please reply with a number only. "
+  body += "\n Please reply with a number only. "
   print(body)
   
   for number in data["numbers"]:
-    
+    print(number)
     message = client.messages \
                 .create(
                      body=body,
-                     from_='+44 7361 583776',
+                     from_=from_number,
                      to=number
                  )
   
