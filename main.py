@@ -29,23 +29,29 @@ def sms_reply():
     resp = MessagingResponse()
     number=request.values['From']
     body=request.values['Body']
-  
-    try: 
+
+    try:
       response_index=int(body.strip())
-  
-      return_value = {"response":body,"number":number}
       response_string=db[number]["responses"][response_index-1]
-  
-      req = urllib.request.Request(return_url)
-      req.add_header('Content-Type', 'application/json; charset=utf-8')
-      jsondata = json.dumps(return_value)
-      jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
-      req.add_header('Content-Length', len(jsondataasbytes))
-      post_response = urllib.request.urlopen(req, jsondataasbytes)
-      # Add a message
-      resp.message("Thank you for answering our survey with: "+response_string)
     except:
-      resp.message("Hmm, we couldn't read your reply. Please try with a number 1-"+str(len(db[number]["responses"])))
+      resp.message("We couldn't find the survey. Have you already responded? ")
+    else:
+      try: 
+        
+        
+        return_value = {"response":response_string,"number":number}
+    
+        req = urllib.request.Request(return_url)
+        req.add_header('Content-Type', 'application/json; charset=utf-8')
+        jsondata = json.dumps(return_value)
+        jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
+        req.add_header('Content-Length', len(jsondataasbytes))
+        post_response = urllib.request.urlopen(req, jsondataasbytes)
+        del db[number]
+        # Add a message
+        resp.message("Thank you for answering our survey with: "+response_string)
+      except:
+        resp.message("Hmm, we couldn't read your reply. Please try with a number 1-"+str(len(db[number]["responses"])))
 
     return str(resp)
 
